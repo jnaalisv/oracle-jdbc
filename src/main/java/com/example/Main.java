@@ -3,8 +3,6 @@ package com.example;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Main {
@@ -15,12 +13,9 @@ public class Main {
 
         final OracleDb oracleDb = new OracleDb("system", "oracle", "xe", "jdbc:oracle:thin:@localhost:1521:xe");
 
-        oracleDb.withConnection(connection -> {
-            try(PreparedStatement stmt = connection.prepareStatement("select sysdate from dual")) {
-                ResultSet rs = stmt.executeQuery();
-                while(rs.next()) {
-                    logger.info("rs[0] "+ rs.getString(1));
-                }
+        oracleDb.executeQuery("select sysdate from dual", rs -> {
+            try {
+                logger.info("rs[0] "+ rs.getString(1));
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
