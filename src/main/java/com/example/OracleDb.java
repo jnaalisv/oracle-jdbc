@@ -5,10 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.function.Consumer;
 
 public class OracleDb {
@@ -39,7 +36,32 @@ public class OracleDb {
                 throw new RuntimeException(e);
             }
         });
+    }
 
+    public void callProcedure(final String sql) {
+        withConnection(connection -> {
+            try(PreparedStatement stmt = connection.prepareCall(sql)) {
+                stmt.execute();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public void executeSql(final String sql) {
+        withConnection(conn -> {
+            try {
+                final Statement stmt = conn.createStatement();
+                final DbmsOutput dbmsOutput = new DbmsOutput( conn );
+                dbmsOutput.enable( 1000000 );
+                stmt.execute( sql );
+                stmt.close();
+                dbmsOutput.show();
+                dbmsOutput.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     private static DataSource buildDataSource(String username, String password, String service, String url) {
